@@ -23,6 +23,8 @@ start:
             sta $fb
             lda #>SCREEN
             sta $fc
+            lda #42 ; star
+            sta $fd
 
             ldx #200 ; count
 next:
@@ -53,11 +55,16 @@ next:
             sta $fc
 .lessthan:
 plotstar:
-            ;lda #42         ; star
-            txa
             ldy #0
+            lda ($fb),y
+            ora $fd ; add star (first layer is sta only)
             sta ($fb),y
 
             dex
             bne next
             rts
+;13295 bij 200 stars incl cls
+;14295 met lda+ora ipv lda
+
+; TODO: can you use sbc directly instead of cmp first? low-byte stays the same
+; TODO: can you fill screen and plot bottom layer star field without checking overflow each byte?
