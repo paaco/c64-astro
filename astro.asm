@@ -9,8 +9,9 @@ ENDSCREEN=$0400+25*40
 
 ; variables
 scrptr = $fb
-count = $fd
-xoff = $fe
+layer0x = $fd
+layer1x = $fe
+layer2x = $ff
 }
 
     * = $0801
@@ -26,43 +27,62 @@ start:
             inx
             bne -
 
-            ldx #0 ; 0..24 increase to scroll up
-            ldy #2 ; 0..39 increase to scroll right
-            jsr drawlayer
+            ;layer0 x and y scroll
+            lda #1 ; 0..24 increase to scroll up
+            sta layer0y
+            lda #0 ; 0..39 increase to scroll right
+            sta layer0x
+            ;layer1 x and y scroll
+            lda #5 ; 0..24 increase to scroll up
+            sta layer1y
+            lda #18 ; 0..39 increase to scroll right
+            sta layer1x
+            ;layer2 x and y scroll
+            lda #20 ; 0..24 increase to scroll up
+            sta layer2y
+            lda #38 ; 0..39 increase to scroll right
+            sta layer2x
 
-            ; ldx #7 ; 0..24 increase to scroll up
-            ; ldy #26 ; 0..39 increase to scroll right
-            ; jsr drawlayer
-
-            ; ldx #18
-            ; ldy #4
-            ; jsr drawlayer
-            rts
-
-; X = y-scroll (0..24, values scroll up)
-; Y = x-scroll (0..39, values scroll right)
 drawlayer:
-            stx count
-            dey                 ; to correct for C=1 from 'sec' later
-            sty xoff
             lda #<SCREEN
             sta scrptr
             lda #>SCREEN
             sta scrptr+1
-            sec                 ; now loop is always entered with C=1
-.nextstar:
-            ; Y = A = layer0[x] + xoff
-            lda layer0,x
-            adc xoff            ; sets C=0
-            tay
-            ; if Y >= 40 then Y = A - 40
-            sbc #40-1           ; 1 to correct for C=0
-            bcc +
+            ldx #0
             clc
+.nextstar:
+            ; Y = (layer0[layer0y] + layer0x) mod 40
+            layer0y = *+1
+            lda layer0,x        ; self modified low-byte offset
+            adc layer0x         ; sets C=0
             tay
-+
+            lda modulo40,y
+            tay ; 2 cycles
             ; plot star
-            lda #42 ; star
+            lda (scrptr),y
+            ora #1
+            sta (scrptr),y
+            ; Y = (layer1[layer1y] + layer1x) mod 40
+            layer1y = *+1
+            lda layer1,x        ; self modified low-byte offset
+            adc layer1x         ; sets C=0
+            tay
+            lda modulo40,y
+            tay
+            ; plot star
+            lda (scrptr),y
+            ora #2
+            sta (scrptr),y
+            ; Y = (layer2[layer2y] + layer2x) mod 40
+            layer2y = *+1
+            lda layer2,x        ; self modified low-byte offset
+            adc layer2x         ; sets C=0
+            tay
+            lda modulo40,y
+            tay
+            ; plot star
+            lda (scrptr),y
+            ora #4
             sta (scrptr),y
 
             ; next line
@@ -74,18 +94,22 @@ drawlayer:
             ; next star
 +           inx
             cpx #25
-            bne +
-            ldx #0
-+           cpx count
             bne .nextstar
             rts
 
+            !align 255,0,0
+
 ; each layer of the starfield consists of 25 stars, one per screen line on a random x-position
+layer2:
+layer1:
 layer0:     !byte 18,12,26,16,21,31,35,31,3,4,10,30,27,31,27,18,2,26,38,6,29,21,14,23,8
+            !byte 18,12,26,16,21,31,35,31,3,4,10,30,27,31,27,18,2,26,38,6,29,21,14,23,8
+
+modulo40:
+            !for i,0,39 { !byte i }
+            !for i,0,39 { !byte i }
 
 ;TODO improvements:
-;TODO - modulo40 table
-;TODO - double layer0 to allow for rollover (no need to reset counter)
-;TODO - inline layers into a single loop
-;TODO - plot a star with lda, ora, sta
+;TODO - separate starfields
+;TODO - move stars
 ;TODO - calculate star characters
