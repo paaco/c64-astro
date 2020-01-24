@@ -88,6 +88,19 @@ drawlayer:
 +           inx
             cpx #25
             bne .nextstar
+
+            ; put logo on screen
+            lda #%00011000 ; charset per $800 bits 3-1; $2000=$800*4
+            sta $D018
+
+            logo_row = 11
+            ldx #logo_width - 1
+-           lda logo,x
+            sta SCREEN + (logo_row+0)*40 + (40-logo_width)/2,x
+            lda logo+logo_width,x
+            sta SCREEN + (logo_row+1)*40 + (40-logo_width)/2,x
+            dex
+            bpl -
             rts
 
 ; each layer of the starfield consists of 25 stars, one per screen line on a random x-position
@@ -102,7 +115,19 @@ modulo40:
             !for i,0,39 { !byte i }
             !for i,0,39 { !byte i }
 
-;TODO improvements:
-;TODO - separate starfields
-;TODO - move stars
-;TODO - calculate star characters
+logo_width = 14
+logo:
+            !source "generated/astrobe-charmap.inc"
+
+    ;----------------------
+            *= $2000
+    ;----------------------
+
+            ; charset
+            !fill 2^3*8, 0 ; keep room for starfield characters
+            !source "generated/astrobe-charset.inc"
+
+;TODO separate starfields
+;TODO move stars
+;TODO calculate star characters
+;TODO black; logo white, stars dark grey
