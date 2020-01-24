@@ -9,9 +9,6 @@ ENDSCREEN=$0400+25*40
 
 ; variables
 scrptr = $fb
-layer0x = $fd
-layer1x = $fe
-layer2x = $ff
 }
 
     * = $0801
@@ -53,34 +50,30 @@ drawlayer:
 .nextstar:
             ; Y = (layer0[layer0y] + layer0x) mod 40
             layer0y = *+1
-            lda layer0,x        ; self modified low-byte offset
-            adc layer0x         ; sets C=0
+            ldy layer0,x        ; self modified low-byte offset
+            layer0x = *+1
+            lda modulo40,y      ; self modified low-byte offset
             tay
-            lda modulo40,y
-            tay ; 2 cycles
-            ; plot star
             lda (scrptr),y
             ora #1
             sta (scrptr),y
+
             ; Y = (layer1[layer1y] + layer1x) mod 40
             layer1y = *+1
-            lda layer1,x        ; self modified low-byte offset
-            adc layer1x         ; sets C=0
+            ldy layer1,x        ; self modified low-byte offset
+            layer1x = *+1
+            lda modulo40,y      ; self modified low-byte offset
             tay
-            lda modulo40,y
-            tay
-            ; plot star
             lda (scrptr),y
             ora #2
             sta (scrptr),y
+
             ; Y = (layer2[layer2y] + layer2x) mod 40
             layer2y = *+1
-            lda layer2,x        ; self modified low-byte offset
-            adc layer2x         ; sets C=0
+            ldy layer2,x        ; self modified low-byte offset
+            layer2x = *+1
+            lda modulo40,y      ; self modified low-byte offset
             tay
-            lda modulo40,y
-            tay
-            ; plot star
             lda (scrptr),y
             ora #4
             sta (scrptr),y
@@ -97,14 +90,14 @@ drawlayer:
             bne .nextstar
             rts
 
-            !align 255,0,0
-
 ; each layer of the starfield consists of 25 stars, one per screen line on a random x-position
+            !align $ff,0,0 ; align on new page
 layer2:
 layer1:
 layer0:     !byte 18,12,26,16,21,31,35,31,3,4,10,30,27,31,27,18,2,26,38,6,29,21,14,23,8
             !byte 18,12,26,16,21,31,35,31,3,4,10,30,27,31,27,18,2,26,38,6,29,21,14,23,8
 
+            !align $ff,0,0 ; align on new page
 modulo40:
             !for i,0,39 { !byte i }
             !for i,0,39 { !byte i }
