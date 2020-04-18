@@ -6,6 +6,7 @@
 !addr {
 SCREEN=$0400
 ENDSCREEN=$0400+25*40
+CHARSET=$2000
 
 ; variables
 scrptr = $fb
@@ -15,7 +16,7 @@ scrptr = $fb
     !byte $0c,$08,<2020,>2020,$9e,$20,$32,$30,$36,$32,$00,$00,$00
 start:
             ; cls
-            lda #32
+            lda #0
             ldx #0
 -           sta SCREEN,x
             sta SCREEN+$100,x
@@ -23,6 +24,73 @@ start:
             sta SCREEN+$300,x
             inx
             bne -
+            ; color
+            lda #1
+            ldx #0
+-           sta $D800,x
+            sta $D900,x
+            sta $DA00,x
+            sta $DB00,x
+            inx
+            bne -
+
+subpixels:
+            ; erase previous bits first before updating
+            lda #0
+            ldy #0 ; old y-offset layer0
+            sta CHARSET + %001*8,y
+            sta CHARSET + %011*8,y
+            sta CHARSET + %101*8,y
+            sta CHARSET + %111*8,y
+            ldy #1 ; old y-offset layer1
+            sta CHARSET + %010*8,y
+            sta CHARSET + %110*8,y
+            sta CHARSET + %011*8,y
+            sta CHARSET + %111*8,y
+            ldy #2 ; old y-offset layer2
+            sta CHARSET + %100*8,y
+            sta CHARSET + %101*8,y
+            sta CHARSET + %110*8,y
+            sta CHARSET + %111*8,y
+
+            ; layer0 is 001
+            ldx #0 ; x-offset layer0
+            ldy #0 ; y-offset layer0
+            lda starbits,x
+            sta CHARSET + %001*8,y
+            sta CHARSET + %011*8,y
+            sta CHARSET + %101*8,y
+            sta CHARSET + %111*8,y
+            ; layer1 is 010
+            ldx #1 ; x-offset layer1
+            ldy #1 ; y-offset layer1
+            lda CHARSET + %010*8,y
+            ora starbits,x
+            sta CHARSET + %010*8,y
+            lda CHARSET + %011*8,y
+            ora starbits,x
+            sta CHARSET + %011*8,y
+            lda CHARSET + %110*8,y
+            ora starbits,x
+            sta CHARSET + %110*8,y
+            lda CHARSET + %111*8,y
+            ora starbits,x
+            sta CHARSET + %111*8,y
+            ; layer2 is 100
+hackme:     ldx #2 ; x-offset layer1
+            ldy #2 ; y-offset layer1
+            lda CHARSET + %100*8,y
+            ora starbits,x
+            sta CHARSET + %100*8,y
+            lda CHARSET + %101*8,y
+            ora starbits,x
+            sta CHARSET + %101*8,y
+            lda CHARSET + %110*8,y
+            ora starbits,x
+            sta CHARSET + %110*8,y
+            lda CHARSET + %111*8,y
+            ora starbits,x
+            sta CHARSET + %111*8,y
 
             ;layer0 x and y scroll
             lda #1 ; 0..24 increase to scroll up
@@ -101,7 +169,19 @@ drawlayer:
             sta SCREEN + (logo_row+1)*40 + (40-logo_width)/2,x
             dex
             bpl -
-            rts
+
+            ; DEBUG rasterloop
+            lda #$80
+-           cmp $D012
+            bne -
+
+            ldx hackme+1
+            inx
+            cpx #8
+            bne +
+            ldx #0
++           stx hackme+1
+            jmp subpixels
 
 ; each layer of the starfield consists of 25 stars, one per screen line on a random x-position
             !align $ff,0,0 ; align on new page
@@ -109,6 +189,9 @@ layer2:
 layer1:
 layer0:     !byte 18,12,26,16,21,31,35,31,3,4,10,30,27,31,27,18,2,26,38,6,29,21,14,23,8
             !byte 18,12,26,16,21,31,35,31,3,4,10,30,27,31,27,18,2,26,38,6,29,21,14,23,8
+
+starbits:
+            !byte 128,64,32,16,8,4,2,1
 
             !align $ff,0,0 ; align on new page
 modulo40:
@@ -129,5 +212,5 @@ logo:
 
 ;TODO separate starfields
 ;TODO move stars
-;TODO calculate star characters
 ;TODO black; logo white, stars dark grey
+;TODO 16kb cart
