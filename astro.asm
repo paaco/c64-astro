@@ -38,59 +38,59 @@ subpixels:
             ; erase previous bits first before updating
             lda #0
             ldy #0 ; old y-offset layer0
-            sta CHARSET + %001*8,y
-            sta CHARSET + %011*8,y
-            sta CHARSET + %101*8,y
-            sta CHARSET + %111*8,y
+            sta CHARSET + %00000001*8,y
+            sta CHARSET + %00000011*8,y
+            sta CHARSET + %00000101*8,y
+            sta CHARSET + %00000111*8,y
             ldy #1 ; old y-offset layer1
-            sta CHARSET + %010*8,y
-            sta CHARSET + %110*8,y
-            sta CHARSET + %011*8,y
-            sta CHARSET + %111*8,y
+            sta CHARSET + %00000010*8,y
+            sta CHARSET + %00000110*8,y
+            sta CHARSET + %00000011*8,y
+            sta CHARSET + %00000111*8,y
             ldy #2 ; old y-offset layer2
-            sta CHARSET + %100*8,y
-            sta CHARSET + %101*8,y
-            sta CHARSET + %110*8,y
-            sta CHARSET + %111*8,y
+            sta CHARSET + %00000100*8,y
+            sta CHARSET + %00000101*8,y
+            sta CHARSET + %00000110*8,y
+            sta CHARSET + %00000111*8,y
 
             ; layer0 is 001
             ldx #0 ; x-offset layer0
             ldy #0 ; y-offset layer0
             lda starbits,x
-            sta CHARSET + %001*8,y
-            sta CHARSET + %011*8,y
-            sta CHARSET + %101*8,y
-            sta CHARSET + %111*8,y
+            sta CHARSET + %00000001*8,y
+            sta CHARSET + %00000011*8,y
+            sta CHARSET + %00000101*8,y
+            sta CHARSET + %00000111*8,y
             ; layer1 is 010
             ldx #1 ; x-offset layer1
             ldy #1 ; y-offset layer1
-            lda CHARSET + %010*8,y
+            lda CHARSET + %00000010*8,y
             ora starbits,x
-            sta CHARSET + %010*8,y
-            lda CHARSET + %011*8,y
+            sta CHARSET + %00000010*8,y
+            lda CHARSET + %00000011*8,y
             ora starbits,x
-            sta CHARSET + %011*8,y
-            lda CHARSET + %110*8,y
+            sta CHARSET + %00000011*8,y
+            lda CHARSET + %00000110*8,y
             ora starbits,x
-            sta CHARSET + %110*8,y
-            lda CHARSET + %111*8,y
+            sta CHARSET + %00000110*8,y
+            lda CHARSET + %00000111*8,y
             ora starbits,x
-            sta CHARSET + %111*8,y
+            sta CHARSET + %00000111*8,y
             ; layer2 is 100
 hackme:     ldx #2 ; x-offset layer1
             ldy #2 ; y-offset layer1
-            lda CHARSET + %100*8,y
+            lda CHARSET + %00000100*8,y
             ora starbits,x
-            sta CHARSET + %100*8,y
-            lda CHARSET + %101*8,y
+            sta CHARSET + %00000100*8,y
+            lda CHARSET + %00000101*8,y
             ora starbits,x
-            sta CHARSET + %101*8,y
-            lda CHARSET + %110*8,y
+            sta CHARSET + %00000101*8,y
+            lda CHARSET + %00000110*8,y
             ora starbits,x
-            sta CHARSET + %110*8,y
-            lda CHARSET + %111*8,y
+            sta CHARSET + %00000110*8,y
+            lda CHARSET + %00000111*8,y
             ora starbits,x
-            sta CHARSET + %111*8,y
+            sta CHARSET + %00000111*8,y
 
             ;layer0 x and y scroll
             lda #1 ; 0..24 increase to scroll up
